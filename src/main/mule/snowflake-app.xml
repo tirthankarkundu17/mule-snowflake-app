@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="5ed41215-471a-405e-b71f-d2ae77824703" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="403fdf7a-fdbc-493d-ae27-f776af491732" >
+		<db:generic-connection url="${snowflake.url}" driverClassName="net.snowflake.client.jdbc.SnowflakeDriver" user="${snowflake.user}" password="${snowflake.password}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="fe910c86-c10e-46a1-b2db-a0b4434703c7" file="app.yaml" />
+	<flow name="snowflake-appFlow" doc:id="7de8b5c2-3ceb-48bd-b140-97356df203e1" >
+		<http:listener doc:name="Listener" doc:id="cff0abf4-498f-41b4-b08e-04d380b0e985" config-ref="HTTP_Listener_config" path="/"/>
+		<db:select doc:name="Select employees" doc:id="f9b411eb-7767-4ba8-b7c1-bb893a70cbac" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select * from employees]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="f2953d69-d6d2-4620-9d13-88950bbee0e0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((employee, index) -> {
+	employee_id: employee.ID,
+	employee_name: employee.NAME,
+	employee_age: employee.AGE
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

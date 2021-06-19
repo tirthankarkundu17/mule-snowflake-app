@@ -1,0 +1,7 @@
+snowflake:
+  user: <user>
+  password: <password>
+  url: jdbc:snowflake://<account>.aws.snowflakecomputing.com/?db=<db_name>&schema=public
+  
+http:
+  port: "8081"
